@@ -17,13 +17,14 @@ sub handle_request {
               . ': This plugin should run on Lighttpd.' );
     }
 
-    if ( !$c->engine->isa('Catalyst::Engine::FastCGI') ) {
-        $c->log->warn(
-            ( ref $c->engine ) . ': This plugin should run on FastCGI.' );
+    if ( !exists $env_ref->{FCGI_ROLE} ) {
+        $c->log->warn('This plugin should run on FastCGI.');
     }
 
-    ( $env_ref->{PATH_INFO}, $env_ref->{QUERY_STRING} ) =
-      ( split /\?/msx, $env_ref->{REQUEST_URI}, 2 );
+    $env_ref->{SCRIPT_NAME} = '';
+    if ( $env_ref->{REQUEST_URI} =~ /(.*?)[?](.*)/msx ) {
+        ( $env_ref->{PATH_INFO}, $env_ref->{QUERY_STRING} ) = ( $1, $2 );
+    }
 
     $env_ref->{HTTP_X_FORWARDED_HOST} ||= $env_ref->{HTTP_X_HOST};
 
